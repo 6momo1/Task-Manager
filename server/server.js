@@ -2,80 +2,104 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const pool = require("./db");
+const  bitToBoolean  = require("./pipes/bitToBoolean")
+const  booleanToBit  = require("./pipes/booleanToBit")
+
 
 //middleware
 app.use(cors());
 app.use(express.json()); //req.body
 
 
-//create a todo
 
-app.post("/todos", async (req, res) => {
+
+// schema: { text, day, reminder }
+
+
+
+// POST A TASK
+app.post("/tasks", async (req, res) => {
   try {
-    const { description } = req.body;
-    const newTodo = await pool.query(
-      "INSERT INTO todo (description) VALUES($1) RETURNING *",
-      [description]
+    const { text } = req.body;
+    const { day } = req.body;
+    const { reminder } = req.body;
+    const newTasks = await pool.query(
+      "INSERT INTO tasks (text, day, reminder) VALUES($1,$2,$3) RETURNING *",
+      [text,day,reminder]
     );
 
-    res.json(newTodo.rows[0]);
+    res.json(newTasks.rows[0]);
   } catch (err) {
     console.error(err.message);
   }
 });
 
-//get all todos
 
-app.get("/todos", async (req, res) => {
+
+
+
+
+//GET ALL TASKS
+app.get("/tasks", async (req, res) => {
   try {
-    const allTodos = await pool.query("SELECT * FROM todo");
-    res.json(allTodos.rows);
+    const allTasks = await pool.query("SELECT * FROM tasks");
+    res.json(allTasks.rows);
   } catch (err) {
     console.error(err.message);
   }
 });
 
-//get a todo
 
-app.get("/todos/:id", async (req, res) => {
+
+
+
+// GET A SINGLE TASK
+app.get("/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const todo = await pool.query("SELECT * FROM todo WHERE todo_id = $1", [
+    const task = await pool.query("SELECT * FROM tasks WHERE id = $1", [
       id
     ]);
 
-    res.json(todo.rows[0]);
+    res.json(task.rows[0]);
   } catch (err) {
     console.error(err.message);
   }
 });
 
-//update a todo
 
-app.put("/todos/:id", async (req, res) => {
+
+
+// PUT: Edit a single reminder
+app.put("/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { description } = req.body;
+    const { reminder } = req.body;
     const updateTodo = await pool.query(
-      "UPDATE todo SET description = $1 WHERE todo_id = $2",
-      [description, id]
+      "UPDATE tasks SET reminder = $1 WHERE id = $2",
+      [reminder, id]
     );
 
-    res.json("Todo was updated!");
+    const allTasks = await pool.query("SELECT * FROM tasks");
+
+    res.json(allTasks.rows[0]);
+    
   } catch (err) {
     console.error(err.message);
   }
 });
 
-//delete a todo
 
-app.delete("/todos/:id", async (req, res) => {
+
+// DELETE a single task
+
+app.delete("/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deleteTodo = await pool.query("DELETE FROM todo WHERE todo_id = $1", [
+    const deleteTask = await pool.query("DELETE FROM tasks WHERE id = $1", [
       id
     ]);
-    res.json("Todo was deleted!");
+    res.json("Task deleted.");
   } catch (err) {
     console.log(err.message);
   }

@@ -3,6 +3,9 @@ import Header from './components/Header'
 import Tasks from './components/Tasks'
 import AddTask from './components/AddTask'
 import {useState, useEffect} from 'react'
+const  bitToBoolean  = require("./pipes/bitToBoolean")
+const  booleanToBit  = require("./pipes/booleanToBit")
+
 
 function App() {
 
@@ -18,22 +21,25 @@ function App() {
       getTask()
     },[])
 
-    //fetch all tasks
+    //GET ALL TASKS
     const fetchTasks = async () => {
       const res = await fetch('http://localhost:5000/tasks')
       const data = await res.json()
-
+      console.log(data);
+      data.map( task => task.reminder = bitToBoolean(task.reminder)) 
+      console.log(data);
       return data
     }
 
-    //fetch single task
+    //GET TASK
     const fetchTask = async (id) => {
       const res = await fetch(`http://localhost:5000/tasks/${id}`)
       const data = await res.json()
 
       return data
     }
-    
+   
+    //DELETE TASK
     const deleteTask = async (id) => {
       await fetch(`
         http://localhost:5000/tasks/${id}`,
@@ -42,11 +48,19 @@ function App() {
       setTasks(tasks.filter((task) => task.id !== id))
     }
 
+    //PUT: TOGGLE REMINDER
     const toggleReminder = async (id) => {
 
-      const taskToUpdate = await fetchTask(id)
-      const updatedTask = {...taskToUpdate, reminder: !taskToUpdate.reminder}
+      const taskToUpdate = await fetchTask(id) // return a reminder with a bit
+      const bitBefore = bitToBoolean(taskToUpdate.reminder) // convert reminder to boolean
+      const updatedTask = {...taskToUpdate, reminder: !bitBefore}
 
+      var bit = 0
+      if (bitBefore){
+        bit = 0
+      } else {
+        bit = 1
+      }
       const res = await fetch(
         `http://localhost:5000/tasks/${id}`,
         {
@@ -54,17 +68,19 @@ function App() {
           headers:{
             'Content-type': 'application/json',
           },
-          body:JSON.stringify(updatedTask)
+          body:JSON.stringify({...updatedTask,reminder:bit})
         }
       )
-
+      
       const data = await res.json()
+      setTasks(tasks.map(task => task.id === id ? {...task, reminder: updatedTask.reminder} : task ))
 
-      setTasks(tasks.map(task => task.id === id ? {...task, reminder: data.reminder} : task))
     }
 
+    //POST TASK
     const onSubmit = async (task) => {
-      
+      const bit = booleanToBit(task.reminder)
+      task = {...task, reminder: bit}
       const res = await fetch(
         `http://localhost:5000/tasks`,
         {
@@ -83,6 +99,8 @@ function App() {
       // const newTask = {id,...task}
       // setTasks([...tasks, newTask])
     }
+
+
 
     const addCloseButton = () => {
       console.log("add close button received");
