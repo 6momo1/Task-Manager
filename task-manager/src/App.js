@@ -3,13 +3,16 @@ import Header from './components/Header'
 import Tasks from './components/Tasks'
 import AddTask from './components/AddTask'
 import {useState, useEffect} from 'react'
+
 const  bitToBoolean  = require("./pipes/bitToBoolean")
 const  booleanToBit  = require("./pipes/booleanToBit")
 
+const LOCALHOST = '192.168.0.20'
+const PORT = '5000'
 
 function App() {
 
-    const [showAddTask, setShowAddTask] = useState(false)
+    const [showAddTask, setShowAddTask] = useState(true)
     const [tasks, setTasks] = useState([])
   
 
@@ -23,7 +26,7 @@ function App() {
 
     //GET ALL TASKS
     const fetchTasks = async () => {
-      const res = await fetch('http://localhost:5000/tasks')
+      const res = await fetch(`http://${LOCALHOST}:${PORT}/tasks`)
       const data = await res.json()
       console.log(data);
       data.map( task => task.reminder = bitToBoolean(task.reminder)) 
@@ -33,7 +36,7 @@ function App() {
 
     //GET TASK
     const fetchTask = async (id) => {
-      const res = await fetch(`http://localhost:5000/tasks/${id}`)
+      const res = await fetch(`http://${LOCALHOST}:${PORT}/tasks/${id}`)
       const data = await res.json()
 
       return data
@@ -42,7 +45,7 @@ function App() {
     //DELETE TASK
     const deleteTask = async (id) => {
       await fetch(`
-        http://localhost:5000/tasks/${id}`,
+        http://${LOCALHOST}:${PORT}/tasks/${id}`,
         {method: 'DELETE'}
       )
       setTasks(tasks.filter((task) => task.id !== id))
@@ -62,7 +65,7 @@ function App() {
         bit = 1
       }
       const res = await fetch(
-        `http://localhost:5000/tasks/${id}`,
+        `http://${LOCALHOST}:${PORT}/tasks/${id}`,
         {
           method:'PUT',
           headers:{
@@ -72,7 +75,7 @@ function App() {
         }
       )
       
-      const data = await res.json()
+      // const data = await res.json()
       setTasks(tasks.map(task => task.id === id ? {...task, reminder: updatedTask.reminder} : task ))
 
     }
@@ -82,7 +85,7 @@ function App() {
       const bit = booleanToBit(task.reminder)
       task = {...task, reminder: bit}
       const res = await fetch(
-        `http://localhost:5000/tasks`,
+        `http://${LOCALHOST}:${PORT}/tasks`,
         {
           method: 'POST',
           headers: {
@@ -109,7 +112,6 @@ function App() {
 
   return (
     <div className='container'>
-      <h1>App Component</h1> 
       <Header addCloseButton={addCloseButton} showAddTask={showAddTask}/>
       {showAddTask?<AddTask onSubmit={onSubmit}/> :<></>}
       <Tasks tasks={tasks} toggleReminder={toggleReminder} deleteTask={deleteTask} />

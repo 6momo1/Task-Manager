@@ -83,7 +83,7 @@ app.put("/tasks/:id", async (req, res) => {
     const allTasks = await pool.query("SELECT * FROM tasks");
 
     res.json(allTasks.rows[0]);
-    
+
   } catch (err) {
     console.error(err.message);
   }
@@ -105,6 +105,7 @@ app.delete("/tasks/:id", async (req, res) => {
   }
 });
 
-app.listen(5000, () => {
+app.listen(5000, '192.168.0.20', () => {
   console.log("server has started on port 5000");
 });
+
