@@ -54,7 +54,7 @@ function App() {
     //PUT: TOGGLE REMINDER
     const toggleReminder = async (id) => {
 
-      const taskToUpdate = await fetchTask(id) // return a reminder with a bit
+      const taskToUpdate = await fetchTask(id)  // return a reminder with a bit
       const bitBefore = bitToBoolean(taskToUpdate.reminder) // convert reminder to boolean
       const updatedTask = {...taskToUpdate, reminder: !bitBefore}
 

@@ -2,18 +2,26 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const pool = require("./db");
+const path = require('path')
+
 const  bitToBoolean  = require("./pipes/bitToBoolean")
 const  booleanToBit  = require("./pipes/booleanToBit")
 
 
+const LOCALNETWORK = '192.168.0.20'
+const PORT = 5000
+
 //middleware
 app.use(cors());
-app.use(express.json()); //req.body
+app.use(express.json()); //req.body, allow express to read json
 
 
+app.use(express.static(path.join(__dirname,'build')))
 
+app.get('/', function(req,res) {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'))
+})
 
-// schema: { text, day, reminder }
 
 
 
@@ -29,6 +37,9 @@ app.post("/tasks", async (req, res) => {
     );
 
     res.json(newTasks.rows[0]);
+
+    console.log("Task added.", req.body);
+
   } catch (err) {
     console.error(err.message);
   }
@@ -37,13 +48,15 @@ app.post("/tasks", async (req, res) => {
 
 
 
-
-
 //GET ALL TASKS
 app.get("/tasks", async (req, res) => {
   try {
     const allTasks = await pool.query("SELECT * FROM tasks");
+    
     res.json(allTasks.rows);
+
+    console.log("All tasks returned.");
+
   } catch (err) {
     console.error(err.message);
   }
@@ -62,6 +75,9 @@ app.get("/tasks/:id", async (req, res) => {
     ]);
 
     res.json(task.rows[0]);
+
+    console.log("Single task returned",task);
+
   } catch (err) {
     console.error(err.message);
   }
@@ -84,6 +100,8 @@ app.put("/tasks/:id", async (req, res) => {
 
     res.json(allTasks.rows[0]);
 
+    console.log(`Task id of ${id} updated.`);
+
   } catch (err) {
     console.error(err.message);
   }
@@ -100,12 +118,15 @@ app.delete("/tasks/:id", async (req, res) => {
       id
     ]);
     res.json("Task deleted.");
+
+    console.log(`Task id:${id} deleted.`);
+
   } catch (err) {
     console.log(err.message);
   }
 });
 
-app.listen(5000, '192.168.0.20', () => {
-  console.log("server has started on port 5000");
+app.listen(PORT, LOCALNETWORK, () => {
+  console.log(`Server running on network ${LOCALNETWORK}, listening on port:${PORT}`);
 });
 
